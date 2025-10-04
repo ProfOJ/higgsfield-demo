@@ -6,7 +6,7 @@ import MotionSelector from "@/components/MotionSelector";
 import ModelSelector from "@/components/ModelSelector";
 import type { Motion, GenerateVideoResponse } from "@/types/common";
 
-export default function Home() {
+export default function ZombiePage() {
   const [motions, setMotions] = useState<Motion[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>("");
@@ -53,6 +53,11 @@ export default function Home() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("model", selectedModel);
+      // Override with zombie prompt
+      formData.append(
+        "prompt",
+        "Horror scene where a horde of realistic zombies enter the room toward the camera, zombie apocalypse style, dark atmospheric lighting, terrifying and dramatic"
+      );
       if (selectedMotionId) {
         formData.append("motionId", selectedMotionId);
         formData.append("strength", strength.toString());
@@ -79,29 +84,29 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 p-4 sm:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-red-950 to-gray-900 p-4 sm:p-8">
       <div className="max-w-4xl mx-auto">
         <header className="text-center mb-8">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-            🦖 Jurassic Park Video Generator
+          <h1 className="text-4xl sm:text-5xl font-bold mb-3 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            🧟 Zombie Apocalypse Simulator
           </h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-4">
-            Turn your photos into epic Jurassic Park-style videos with dinosaurs entering the scene
+          <p className="text-gray-300 mb-4">
+            Turn your photos into terrifying zombie apocalypse scenes with undead entering the frame
           </p>
           <div className="flex gap-4 justify-center">
             <Link
-              href="/zombie"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg transition-colors text-sm font-medium"
+              href="/"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg transition-colors text-sm font-medium"
             >
-              🧟 Try Zombie Apocalypse
+              🦖 Try Jurassic Park
             </Link>
           </div>
         </header>
 
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 sm:p-8 space-y-6">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 space-y-6 border border-red-900/30">
           {/* File Upload */}
           <div>
-            <label htmlFor="image-upload" className="block text-sm font-medium mb-2">
+            <label htmlFor="image-upload" className="block text-sm font-medium mb-2 text-gray-200">
               Upload Image
             </label>
             <input
@@ -111,13 +116,13 @@ export default function Home() {
               capture="environment"
               onChange={handleFileChange}
               disabled={loading}
-              className="w-full p-3 border border-gray-300 rounded-lg cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full p-3 border border-red-900/50 bg-gray-900 text-gray-200 rounded-lg cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-900 file:text-red-100 hover:file:bg-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
           {/* Image Preview */}
           {previewUrl && (
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <div className="border border-red-900/50 rounded-lg overflow-hidden bg-black">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
@@ -128,27 +133,31 @@ export default function Home() {
           )}
 
           {/* Model Selector */}
-          <ModelSelector
-            selectedModel={selectedModel}
-            onModelChange={setSelectedModel}
-            disabled={loading}
-          />
+          <div className="text-gray-200">
+            <ModelSelector
+              selectedModel={selectedModel}
+              onModelChange={setSelectedModel}
+              disabled={loading}
+            />
+          </div>
 
           {/* Motion Selector */}
-          <MotionSelector
-            motions={motions}
-            selectedMotionId={selectedMotionId}
-            strength={strength}
-            onMotionChange={setSelectedMotionId}
-            onStrengthChange={setStrength}
-            disabled={loading}
-          />
+          <div className="text-gray-200">
+            <MotionSelector
+              motions={motions}
+              selectedMotionId={selectedMotionId}
+              strength={strength}
+              onMotionChange={setSelectedMotionId}
+              onStrengthChange={setStrength}
+              disabled={loading}
+            />
+          </div>
 
           {/* Generate Button */}
           <button
             onClick={handleGenerate}
             disabled={!selectedFile || loading}
-            className="w-full py-4 px-6 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-semibold rounded-lg shadow-lg hover:from-green-700 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full py-4 px-6 bg-gradient-to-r from-red-700 to-orange-700 text-white font-semibold rounded-lg shadow-lg hover:from-red-800 hover:to-orange-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -171,30 +180,26 @@ export default function Home() {
                 Generating... (this may take 30-60 seconds)
               </span>
             ) : (
-              "🎬 Generate Jurassic Park Video"
+              "🎬 Generate Zombie Apocalypse Video"
             )}
           </button>
 
           {/* Error Display */}
           {error && (
-            <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-red-800 dark:text-red-200 font-medium">❌ {error}</p>
+            <div className="p-4 bg-red-900/20 border border-red-800 rounded-lg">
+              <p className="text-red-200 font-medium">❌ {error}</p>
             </div>
           )}
 
           {/* Result Display */}
           {result && result.success && (
             <div className="space-y-4">
-              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <p className="text-green-800 dark:text-green-200 font-medium mb-2">
-                  ✅ Video generated successfully!
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Job ID: {result.jobSetId}
-                </p>
+              <div className="p-4 bg-green-900/20 border border-green-800 rounded-lg">
+                <p className="text-green-200 font-medium mb-2">✅ Video generated successfully!</p>
+                <p className="text-sm text-gray-400">Job ID: {result.jobSetId}</p>
               </div>
 
-              <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <div className="border border-red-900/50 rounded-lg overflow-hidden bg-black">
                 <video src={result.videoUrl} controls autoPlay loop className="w-full">
                   Your browser does not support the video tag.
                 </video>
@@ -206,7 +211,7 @@ export default function Home() {
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 px-4 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 text-center transition-colors"
+                  className="flex-1 py-3 px-4 bg-red-700 text-white font-medium rounded-lg hover:bg-red-800 text-center transition-colors"
                 >
                   📥 Download Full Video
                 </a>
@@ -215,7 +220,7 @@ export default function Home() {
                   download
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 py-3 px-4 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 text-center transition-colors"
+                  className="flex-1 py-3 px-4 bg-gray-700 text-white font-medium rounded-lg hover:bg-gray-600 text-center transition-colors"
                 >
                   📥 Download Preview
                 </a>
@@ -224,7 +229,7 @@ export default function Home() {
           )}
         </div>
 
-        <footer className="text-center mt-8 text-sm text-gray-500 dark:text-gray-400">
+        <footer className="text-center mt-8 text-sm text-gray-400">
           <p>Powered by Higgsfield AI • Built with Next.js</p>
         </footer>
       </div>

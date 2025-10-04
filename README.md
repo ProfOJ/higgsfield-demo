@@ -7,6 +7,8 @@ Turn your photos into epic Jurassic Park-style videos with dinosaurs entering th
 - 📸 **Image Upload**: Support for file upload and mobile camera capture
 - 🎬 **Motion Selection**: Choose from various camera motions (zoom, pan, dolly, etc.)
 - 🦕 **Jurassic Park Theme**: Automatic prompt generation for dinosaur scenes
+- 🧟 **Zombie Apocalypse**: Alternative zombie-themed video generator
+- 🎭 **Multiple Themes**: Two immersive experiences (dinosaurs and zombies)
 - 🎨 **Modern UI**: Responsive design with dark mode support
 - ✅ **Testing**: Unit, integration, and e2e tests with Jest and Playwright
 - 🔒 **Type-Safe**: Full TypeScript support
