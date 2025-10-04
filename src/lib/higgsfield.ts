@@ -33,6 +33,7 @@ interface GenerateVideoParams {
   motionId?: string;
   strength?: number;
   prompt?: string;
+  model?: "lite" | "standard" | "turbo";
 }
 
 export async function generateVideoFromImage({
@@ -41,6 +42,7 @@ export async function generateVideoFromImage({
   motionId,
   strength = 0.8,
   prompt,
+  model = "turbo",
 }: GenerateVideoParams): Promise<{
   videoUrl: string;
   previewUrl: string;
@@ -51,9 +53,13 @@ export async function generateVideoFromImage({
   // Upload image to Higgsfield CDN
   const imageUrl = await client.uploadImage(imageBuffer, imageFormat);
 
+  // Map model string to DoPModel enum
+  const modelEnum =
+    model === "lite" ? DoPModel.LITE : model === "standard" ? DoPModel.STANDARD : DoPModel.TURBO;
+
   // Build params
   const params: Record<string, unknown> = {
-    model: DoPModel.TURBO,
+    model: modelEnum,
     prompt: prompt || undefined,
     input_images: [InputImage.fromUrl(imageUrl)],
     enhance_prompt: true,

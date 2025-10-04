@@ -16,6 +16,7 @@ export async function POST(request: NextRequest) {
     const motionId = formData.get("motionId") as string | null;
     const strengthStr = formData.get("strength") as string | null;
     const customPrompt = formData.get("prompt") as string | null;
+    const model = (formData.get("model") as string | null) || "turbo";
 
     // Validate image presence
     if (!imageFile) {
@@ -51,6 +52,14 @@ export async function POST(request: NextRequest) {
     // Use custom prompt or default Jurassic Park prompt
     const prompt = customPrompt || DEFAULT_PROMPT;
 
+    // Validate model
+    if (model !== "lite" && model !== "standard" && model !== "turbo") {
+      return NextResponse.json(
+        { error: "Invalid model", details: "Model must be lite, standard, or turbo" },
+        { status: 400 }
+      );
+    }
+
     // Generate video
     const result = await generateVideoFromImage({
       imageBuffer,
@@ -58,6 +67,7 @@ export async function POST(request: NextRequest) {
       motionId: motionId || undefined,
       strength,
       prompt,
+      model,
     });
 
     return NextResponse.json({

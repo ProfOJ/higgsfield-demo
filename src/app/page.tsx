@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import MotionSelector from "@/components/MotionSelector";
+import ModelSelector from "@/components/ModelSelector";
 import type { Motion, GenerateVideoResponse } from "@/types/common";
 
 export default function Home() {
@@ -10,6 +11,7 @@ export default function Home() {
   const [previewUrl, setPreviewUrl] = useState<string>("");
   const [selectedMotionId, setSelectedMotionId] = useState<string>("");
   const [strength, setStrength] = useState<number>(0.8);
+  const [selectedModel, setSelectedModel] = useState<"lite" | "standard" | "turbo">("turbo");
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [result, setResult] = useState<GenerateVideoResponse | null>(null);
@@ -49,6 +51,7 @@ export default function Home() {
     try {
       const formData = new FormData();
       formData.append("image", selectedFile);
+      formData.append("model", selectedModel);
       if (selectedMotionId) {
         formData.append("motionId", selectedMotionId);
         formData.append("strength", strength.toString());
@@ -114,6 +117,13 @@ export default function Home() {
               />
             </div>
           )}
+
+          {/* Model Selector */}
+          <ModelSelector
+            selectedModel={selectedModel}
+            onModelChange={setSelectedModel}
+            disabled={loading}
+          />
 
           {/* Motion Selector */}
           <MotionSelector
