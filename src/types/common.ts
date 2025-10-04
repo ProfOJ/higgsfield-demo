@@ -50,19 +50,19 @@ export const DOP_MODELS: DoPModelInfo[] = [
   {
     id: "lite",
     name: "Lite",
-    description: "Fast & affordable (~2 credits)",
+    description: "Fastest & most affordable (~2 credits)",
     cost: "~$0.125",
-  },
-  {
-    id: "standard",
-    name: "Standard",
-    description: "Highest quality (~9 credits)",
-    cost: "~$0.56",
   },
   {
     id: "turbo",
     name: "Turbo",
-    description: "Fast with priority (~6.5 credits)",
+    description: "Balanced speed & quality (~6.5 credits)",
     cost: "~$0.41",
+  },
+  {
+    id: "standard",
+    name: "Preview",
+    description: "Higher quality preview (~9 credits)",
+    cost: "~$0.56",
   },
 ];

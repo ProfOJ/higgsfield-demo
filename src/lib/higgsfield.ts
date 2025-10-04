@@ -1,5 +1,5 @@
 import "server-only";
-import { HiggsfieldClient, InputImage, inputMotion, DoPModel } from "@higgsfield/client";
+import { HiggsfieldClient, InputImage, inputMotion } from "@higgsfield/client";
 import { env } from "./env";
 import type { Motion } from "@/types/common";
 
@@ -53,13 +53,14 @@ export async function generateVideoFromImage({
   // Upload image to Higgsfield CDN
   const imageUrl = await client.uploadImage(imageBuffer, imageFormat);
 
-  // Map model string to DoPModel enum
-  const modelEnum =
-    model === "lite" ? DoPModel.LITE : model === "standard" ? DoPModel.STANDARD : DoPModel.TURBO;
+  // Map model string to API model string
+  // Note: The API expects 'dop-lite', 'dop-preview', or 'dop-turbo'
+  const modelString =
+    model === "lite" ? "dop-lite" : model === "standard" ? "dop-preview" : "dop-turbo";
 
   // Build params
   const params: Record<string, unknown> = {
-    model: modelEnum,
+    model: modelString,
     prompt: prompt || undefined,
     input_images: [InputImage.fromUrl(imageUrl)],
     enhance_prompt: true,
