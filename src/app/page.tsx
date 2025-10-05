@@ -39,6 +39,40 @@ export default function Home() {
     }
   };
 
+  const pollJobStatus = async (jobSetId: string): Promise<GenerateVideoResponse> => {
+    const maxAttempts = 60; // 60 attempts × 3 seconds = 3 minutes max
+    const pollInterval = 3000; // 3 seconds
+
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      console.info("[Poll] Checking job status", { jobSetId, attempt: attempt + 1 });
+
+      const statusResponse = await fetch(`/api/job-status?id=${jobSetId}`);
+      const statusData = await statusResponse.json();
+
+      console.info("[Poll] Status data", statusData);
+
+      if (statusData.status === "completed") {
+        return {
+          success: true,
+          videoUrl: statusData.videoUrl,
+          previewUrl: statusData.previewUrl,
+          jobSetId: statusData.jobSetId,
+        };
+      }
+
+      if (statusData.status === "failed") {
+        throw new Error(statusData.error || "Video generation failed");
+      }
+
+      // Still processing, wait before next poll
+      if (attempt < maxAttempts - 1) {
+        await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      }
+    }
+
+    throw new Error("Video generation timed out after 3 minutes");
+  };
+
   const handleGenerate = async () => {
     if (!selectedFile) {
       setError("Please select an image first");
@@ -68,16 +102,17 @@ export default function Home() {
         formData.append("strength", strength.toString());
       }
 
+      // Submit the job
       const response = await fetch("/api/generate", {
         method: "POST",
         body: formData,
       });
 
-      const duration = Date.now() - startTime;
+      const submitDuration = Date.now() - startTime;
       console.info("[Generate] Response received", {
         status: response.status,
         statusText: response.statusText,
-        durationMs: duration,
+        durationMs: submitDuration,
       });
 
       const data = await response.json();
@@ -94,8 +129,21 @@ export default function Home() {
         throw new Error(`${data.error || "Failed to generate video"}${errorDetails}`);
       }
 
-      console.info("[Generate] Success", { jobSetId: data.jobSetId, durationMs: duration });
-      setResult(data);
+      if (!data.jobSetId) {
+        throw new Error("No job ID returned from server");
+      }
+
+      console.info("[Generate] Job submitted, starting polling", { jobSetId: data.jobSetId });
+
+      // Poll for completion
+      const result = await pollJobStatus(data.jobSetId);
+
+      const totalDuration = Date.now() - startTime;
+      console.info("[Generate] Success", {
+        jobSetId: result.jobSetId,
+        totalDurationMs: totalDuration,
+      });
+      setResult(result);
     } catch (err: unknown) {
       const error = err as Error;
       const duration = Date.now() - startTime;
