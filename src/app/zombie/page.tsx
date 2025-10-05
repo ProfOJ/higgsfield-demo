@@ -97,10 +97,10 @@ export default function ZombiePage() {
       const formData = new FormData();
       formData.append("image", selectedFile);
       formData.append("model", selectedModel);
-      // Override with zombie prompt
+      // Override with zombie prompt - slow Romero-style
       formData.append(
         "prompt",
-        "Cinematic shot where a group of realistic zombies enter the room toward the camera, apocalypse style, dramatic lighting, epic horror atmosphere"
+        "Cinematic shot where a group of realistic slow-moving zombies shamble and stagger toward the camera, classic Romero-style undead, apocalypse atmosphere, dramatic lighting, epic horror scene"
       );
       if (selectedMotionId) {
         formData.append("motionId", selectedMotionId);
