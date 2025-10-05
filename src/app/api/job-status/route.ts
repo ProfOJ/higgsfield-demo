@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     // Fetch job status without polling (withPolling: false would be ideal, but we'll use the axios client)
     // @ts-expect-error - accessing internal axios client
-    const response = await client.axiosClient.get(`/v1/job-sets/${jobSetId}`);
+    const response = await client.client.get(`/v1/job-sets/${jobSetId}`);
     const jobSetData = response.data;
 
     logger.debug("Job status fetched", {

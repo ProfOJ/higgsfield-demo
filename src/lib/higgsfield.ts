@@ -103,7 +103,7 @@ export async function submitVideoGeneration({
     // Submit job without polling
     logger.info("Submitting generation job (no polling)", { model: modelString });
     // @ts-expect-error - accessing internal axios client
-    const response = await client.axiosClient.post("/v1/image2video/dop", params);
+    const response = await client.client.post("/v1/image2video/dop", params);
     const jobSetId = response.data.id;
 
     logger.info("Job submitted successfully", { jobSetId });
