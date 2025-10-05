@@ -113,7 +113,8 @@ export async function generateVideoFromImage({
     if (!jobSet.isCompleted) {
       logger.error("Job did not complete", {
         jobSetId: jobSet.id,
-        status: jobSet.status,
+        isCompleted: jobSet.isCompleted,
+        isFailed: jobSet.isFailed,
       });
       throw new Error("Job set did not complete in time");
     }
@@ -121,7 +122,8 @@ export async function generateVideoFromImage({
     if (jobSet.isFailed) {
       logger.error("Job failed", {
         jobSetId: jobSet.id,
-        status: jobSet.status,
+        isCompleted: jobSet.isCompleted,
+        isFailed: jobSet.isFailed,
       });
       throw new Error("Video generation failed");
     }
