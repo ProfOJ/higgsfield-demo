@@ -39,6 +39,7 @@ export async function POST(request: NextRequest) {
       model,
       motionId: motionId || "none",
       strength: strengthStr || "default",
+      customPrompt: customPrompt || "(using default)",
       promptLength: customPrompt?.length || 0,
     });
 

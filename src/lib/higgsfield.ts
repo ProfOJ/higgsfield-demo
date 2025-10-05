@@ -69,6 +69,7 @@ export async function submitVideoGeneration({
     imageFormat,
     model,
     hasMotion: !!motionId,
+    prompt: prompt || "(no prompt)",
     promptLength: prompt?.length || 0,
   });
 
@@ -101,7 +102,11 @@ export async function submitVideoGeneration({
     }
 
     // Submit job without polling
-    logger.info("Submitting generation job (no polling)", { model: modelString });
+    logger.info("Submitting generation job (no polling)", {
+      model: modelString,
+      prompt: params.prompt,
+      enhance_prompt: params.enhance_prompt,
+    });
     // @ts-expect-error - accessing internal axios client
     // Note: API expects params wrapped in a 'params' field
     const response = await client.client.post("/v1/image2video/dop", { params });
