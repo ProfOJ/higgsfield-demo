@@ -120,7 +120,18 @@ export default function ZombiePage() {
         durationMs: submitDuration,
       });
 
-      const data = await response.json();
+      // Parse JSON with error handling
+      let data;
+      try {
+        const text = await response.text();
+        console.info("[Zombie Generate] Response text", { text: text.substring(0, 200) });
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error("[Zombie Generate] Failed to parse JSON", { parseError });
+        throw new Error(
+          `Server returned invalid response (${response.status}): ${response.statusText}`
+        );
+      }
       console.info("[Zombie Generate] Response data", data);
 
       if (!response.ok) {
