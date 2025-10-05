@@ -56,6 +56,67 @@ interface GenerateVideoParams {
   model?: "lite" | "standard" | "turbo";
 }
 
+export async function submitVideoGeneration({
+  imageBuffer,
+  imageFormat,
+  motionId,
+  strength = 0.8,
+  prompt,
+  model = "turbo",
+}: GenerateVideoParams): Promise<string> {
+  logger.info("Submitting video generation (no polling)", {
+    imageSize: imageBuffer.length,
+    imageFormat,
+    model,
+    hasMotion: !!motionId,
+    promptLength: prompt?.length || 0,
+  });
+
+  try {
+    const client = getClient();
+
+    // Upload image to Higgsfield CDN
+    const uploadTimer = logger.startTimer("uploadImage");
+    logger.debug("Uploading image to Higgsfield CDN");
+    const imageUrl = await client.uploadImage(imageBuffer, imageFormat);
+    uploadTimer.end();
+    logger.info("Image uploaded", { imageUrl: imageUrl.substring(0, 50) + "..." });
+
+    // Map model string to API model string
+    const modelString =
+      model === "lite" ? "dop-lite" : model === "standard" ? "dop-preview" : "dop-turbo";
+
+    // Build params
+    const params: Record<string, unknown> = {
+      model: modelString,
+      prompt: prompt || undefined,
+      input_images: [InputImage.fromUrl(imageUrl)],
+      enhance_prompt: true,
+    };
+
+    // Add motion if specified
+    if (motionId) {
+      params.motions = [inputMotion(motionId, strength)];
+      logger.debug("Added motion", { motionId, strength });
+    }
+
+    // Submit job without polling
+    logger.info("Submitting generation job (no polling)", { model: modelString });
+    // @ts-expect-error - accessing internal axios client
+    const response = await client.axiosClient.post("/v1/image2video/dop", params);
+    const jobSetId = response.data.id;
+
+    logger.info("Job submitted successfully", { jobSetId });
+    return jobSetId;
+  } catch (error) {
+    logger.error("Failed to submit video generation", {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw error;
+  }
+}
+
 export async function generateVideoFromImage({
   imageBuffer,
   imageFormat,

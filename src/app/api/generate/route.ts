@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateVideoFromImage } from "@/lib/higgsfield";
+import { submitVideoGeneration } from "@/lib/higgsfield";
 import {
   ALLOWED_MIME_TYPES,
   MAX_FILE_SIZE_BYTES,
@@ -98,16 +98,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    logger.info("Starting video generation", {
+    logger.info("Starting video generation (async)", {
       requestId,
       imageSize: imageBuffer.length,
       format: imageFormat,
       model,
     });
 
-    // Generate video
-    const generationTimer = logger.startTimer("higgsfield-generation");
-    const result = await generateVideoFromImage({
+    // Submit video generation job (returns immediately with job ID)
+    const generationTimer = logger.startTimer("submit-generation");
+    const jobSetId = await submitVideoGeneration({
       imageBuffer,
       imageFormat,
       motionId: motionId || undefined,
@@ -118,17 +118,18 @@ export async function POST(request: NextRequest) {
     generationTimer.end();
 
     const totalMs = requestTimer.end();
-    logger.info("Video generation succeeded", {
+    logger.info("Video generation job submitted", {
       requestId,
-      jobSetId: result.jobSetId,
+      jobSetId,
       totalMs,
     });
 
+    // Return job ID immediately - client will poll for status
     return NextResponse.json({
       success: true,
-      videoUrl: result.videoUrl,
-      previewUrl: result.previewUrl,
-      jobSetId: result.jobSetId,
+      jobSetId,
+      status: "processing",
+      message: "Video generation started. Check status with jobSetId.",
     });
   } catch (error: unknown) {
     const err = error as Error;
