@@ -49,6 +49,16 @@ export default function Home() {
     setError("");
     setResult(null);
 
+    const startTime = Date.now();
+    console.info("[Generate] Starting request", {
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      fileType: selectedFile.type,
+      model: selectedModel,
+      motionId: selectedMotionId || "none",
+      strength,
+    });
+
     try {
       const formData = new FormData();
       formData.append("image", selectedFile);
@@ -63,15 +73,38 @@ export default function Home() {
         body: formData,
       });
 
+      const duration = Date.now() - startTime;
+      console.info("[Generate] Response received", {
+        status: response.status,
+        statusText: response.statusText,
+        durationMs: duration,
+      });
+
       const data = await response.json();
+      console.info("[Generate] Response data", data);
 
       if (!response.ok) {
-        throw new Error(data.error || "Failed to generate video");
+        const errorDetails = data.details ? ` - ${data.details}` : "";
+        console.error("[Generate] Request failed", {
+          status: response.status,
+          error: data.error,
+          details: data.details,
+          data,
+        });
+        throw new Error(`${data.error || "Failed to generate video"}${errorDetails}`);
       }
 
+      console.info("[Generate] Success", { jobSetId: data.jobSetId, durationMs: duration });
       setResult(data);
     } catch (err: unknown) {
       const error = err as Error;
+      const duration = Date.now() - startTime;
+      console.error("[Generate] Error occurred", {
+        errorName: error.name,
+        errorMessage: error.message,
+        errorStack: error.stack,
+        durationMs: duration,
+      });
       setError(error.message || "An error occurred");
     } finally {
       setLoading(false);

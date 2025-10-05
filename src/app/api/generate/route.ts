@@ -6,26 +6,55 @@ import {
   MIME_TO_EXT,
   DEFAULT_PROMPT,
 } from "@/types/common";
+import { logger } from "@/lib/logger";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
+  const requestTimer = logger.startTimer("api/generate:total");
+  const requestId = Math.random().toString(36).substring(7);
+
+  logger.info("[/api/generate] Request started", {
+    requestId,
+    userAgent: request.headers.get("user-agent") || "unknown",
+    ip: request.headers.get("x-forwarded-for") || request.headers.get("x-real-ip") || "unknown",
+  });
+
   try {
+    const parseTimer = logger.startTimer("form-parse");
     const formData = await request.formData();
+    parseTimer.end();
     const imageFile = formData.get("image") as File | null;
     const motionId = formData.get("motionId") as string | null;
     const strengthStr = formData.get("strength") as string | null;
     const customPrompt = formData.get("prompt") as string | null;
     const model = (formData.get("model") as string | null) || "turbo";
 
+    logger.debug("Request parameters", {
+      requestId,
+      hasImage: !!imageFile,
+      imageSize: imageFile?.size,
+      imageMime: imageFile?.type,
+      model,
+      motionId: motionId || "none",
+      strength: strengthStr || "default",
+      promptLength: customPrompt?.length || 0,
+    });
+
     // Validate image presence
     if (!imageFile) {
+      logger.warn("Validation failed: No image", { requestId });
       return NextResponse.json({ error: "Image file is required" }, { status: 400 });
     }
 
     // Validate file size
     if (imageFile.size > MAX_FILE_SIZE_BYTES) {
+      logger.warn("Validation failed: File too large", {
+        requestId,
+        size: imageFile.size,
+        limit: MAX_FILE_SIZE_BYTES,
+      });
       return NextResponse.json(
         { error: `File size exceeds ${MAX_FILE_SIZE_BYTES / 1024 / 1024}MB limit` },
         { status: 413 }
@@ -34,6 +63,11 @@ export async function POST(request: NextRequest) {
 
     // Validate MIME type
     if (!ALLOWED_MIME_TYPES.includes(imageFile.type)) {
+      logger.warn("Validation failed: Invalid MIME type", {
+        requestId,
+        mime: imageFile.type,
+        allowed: ALLOWED_MIME_TYPES,
+      });
       return NextResponse.json(
         {
           error: "Invalid file type",
@@ -47,21 +81,32 @@ export async function POST(request: NextRequest) {
     const strength = strengthStr ? parseFloat(strengthStr) : 0.8;
 
     // Convert File to Buffer
+    const conversionTimer = logger.startTimer("buffer-conversion");
     const arrayBuffer = await imageFile.arrayBuffer();
     const imageBuffer = Buffer.from(arrayBuffer);
+    conversionTimer.end();
 
     // Use custom prompt or default Jurassic Park prompt
     const prompt = customPrompt || DEFAULT_PROMPT;
 
     // Validate model
     if (model !== "lite" && model !== "standard" && model !== "turbo") {
+      logger.warn("Validation failed: Invalid model", { requestId, model });
       return NextResponse.json(
         { error: "Invalid model", details: "Model must be lite, standard, or turbo" },
         { status: 400 }
       );
     }
 
+    logger.info("Starting video generation", {
+      requestId,
+      imageSize: imageBuffer.length,
+      format: imageFormat,
+      model,
+    });
+
     // Generate video
+    const generationTimer = logger.startTimer("higgsfield-generation");
     const result = await generateVideoFromImage({
       imageBuffer,
       imageFormat,
@@ -69,6 +114,14 @@ export async function POST(request: NextRequest) {
       strength,
       prompt,
       model,
+    });
+    generationTimer.end();
+
+    const totalMs = requestTimer.end();
+    logger.info("Video generation succeeded", {
+      requestId,
+      jobSetId: result.jobSetId,
+      totalMs,
     });
 
     return NextResponse.json({
@@ -78,8 +131,14 @@ export async function POST(request: NextRequest) {
       jobSetId: result.jobSetId,
     });
   } catch (error: unknown) {
-    console.error("Error generating video:", error);
     const err = error as Error;
+    logger.error("Video generation failed", {
+      requestId,
+      errorName: err.name,
+      errorMessage: err.message,
+      errorConstructor: err.constructor.name,
+      stack: err.stack,
+    });
 
     // Handle specific error types
     if (err.message?.includes("credits")) {
