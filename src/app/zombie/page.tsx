@@ -100,7 +100,7 @@ export default function ZombiePage() {
       // Override with zombie prompt
       formData.append(
         "prompt",
-        "Horror scene where a horde of realistic zombies enter the room toward the camera, zombie apocalypse style, dark atmospheric lighting, terrifying and dramatic"
+        "Cinematic shot where a group of realistic zombies enter the room toward the camera, apocalypse style, dramatic lighting, epic horror atmosphere"
       );
       if (selectedMotionId) {
         formData.append("motionId", selectedMotionId);
