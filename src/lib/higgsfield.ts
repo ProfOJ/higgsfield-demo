@@ -12,8 +12,13 @@ export function getClient(): HiggsfieldClient {
     clientInstance = new HiggsfieldClient({
       apiKey: env.HF_API_KEY,
       apiSecret: env.HF_SECRET,
+      // Configure longer poll time for video generation (default is 5 minutes)
+      maxPollTime: 600000, // 10 minutes
+      pollInterval: 3000, // Check every 3 seconds
+      timeout: 180000, // 3 minute timeout for individual requests
+      maxRetries: 3,
     });
-    logger.info("Higgsfield client initialized");
+    logger.info("Higgsfield client initialized with extended poll time");
   }
   return clientInstance;
 }
@@ -109,6 +114,24 @@ export async function generateVideoFromImage({
     generateTimer.end();
 
     logger.info("Job submitted", { jobSetId: jobSet.id });
+
+    // Log the full jobSet for debugging
+    logger.debug("JobSet details", {
+      jobSetId: jobSet.id,
+      isCompleted: jobSet.isCompleted,
+      isFailed: jobSet.isFailed,
+      jobCount: jobSet.jobs?.length || 0,
+      // Try to get any error details from jobs
+      jobStatuses: jobSet.jobs?.map((j) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const job = j as any;
+        return {
+          id: j.id,
+          status: job.status,
+          error: job.error,
+        };
+      }),
+    });
 
     if (!jobSet.isCompleted) {
       logger.error("Job did not complete", {
