@@ -5,6 +5,7 @@ import Link from "next/link";
 import MotionSelector from "@/components/MotionSelector";
 import ModelSelector from "@/components/ModelSelector";
 import type { Motion, GenerateVideoResponse } from "@/types/common";
+import { compressImage } from "@/lib/imageCompression";
 
 export default function ZombiePage() {
   const [motions, setMotions] = useState<Motion[]>([]);
@@ -94,8 +95,16 @@ export default function ZombiePage() {
     });
 
     try {
+      // Compress image if needed
+      console.info("[Zombie Generate] Compressing image if needed...");
+      const imageToUpload = await compressImage(selectedFile, 4, 2048);
+      console.info("[Zombie Generate] Image ready", {
+        originalSize: (selectedFile.size / 1024 / 1024).toFixed(2) + "MB",
+        finalSize: (imageToUpload.size / 1024 / 1024).toFixed(2) + "MB",
+      });
+
       const formData = new FormData();
-      formData.append("image", selectedFile);
+      formData.append("image", imageToUpload);
       formData.append("model", selectedModel);
       // Override with zombie prompt - slow Romero-style
       formData.append(

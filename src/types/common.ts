@@ -43,7 +43,8 @@ export const MIME_TO_EXT: Record<string, string> = {
 };
 
 export const ALLOWED_MIME_TYPES = Object.keys(MIME_TO_EXT);
-export const MAX_FILE_SIZE_MB = 10;
+// Vercel has 4.5MB body limit for serverless functions, set to 4MB to be safe
+export const MAX_FILE_SIZE_MB = 4;
 export const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 export const DOP_MODELS: DoPModelInfo[] = [
